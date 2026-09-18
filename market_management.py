@@ -47,19 +47,16 @@ class Inventory:
         return [self.products[id] for id in ids]
 
     def check_quantity(self, product_id): 
-        #Kiểm tra số lượng sản phẩm trong kho dựa trên mã sản phẩm
         if product_id in self.products:
-            return self.products[product_id].quantity #nếu sản phẩm tồn tại, trả về số lượng hiện có
-        return None # nếu sản phẩm không tồn tại, trả về None
+            return self.products[product_id].quantity 
+        return None 
     
     def reduce_quantity(self, product_id, amount):
-        #Giảm số lượng sản phẩm trong kho sau khi khách hàng mua
-        if product_id in self.products: #nếu sản phẩm tồn tại trong kho
+        if product_id in self.products: 
             product = self.products[product_id]
             if product.quantity >= amount: 
-                #kiểm tra nếu số lượng hiện có đủ để giảm, product.quantity là số lượng sản phẩm hiện có trong kho, amount là số lượng khách hàng muốn mua
                 product.quantity -= amount
-                return True #nếu giảm thành công, trả về True
+                return True 
             else:
                 print("Khong du so luong trong kho.")
                 return False
@@ -73,20 +70,15 @@ class Inventory:
         for id in self.order:
             print(self.products[id])
 
-
-
 class Customer:
-    #Khởi tạo lớp khách hàng lưu trữ các thông tin khách hàng như mã khách hàng và tên
     def __init__(self, customer_id, name):
         self.customer_id = customer_id  
         self.name = name.strip()
-        self.cart = {}# tạo giỏ hàng rỗng để lưu trữ các sản phẩm mà khách hàng muốn mua bằng phương thức dict đã import ở trên
-        self.total = 0 # tổng tiền thanh toán ban đầu là 0
+        self.cart = {}
+        self.total = 0 
     
     def add_to_cart(self, inventory, product_id, quantity):
-        #Thêm sản phẩm vào giỏ hàng của khách hàng, liên kết với inventory để kiểm tra số lượng sản phẩm trong kho
         available = inventory.check_quantity(product_id)  
-        #Kiểm tra nếu sản phẩm tồn tại trong kho thông qua id trong hàm check_quantity ở lớp Inventory
         if available is None:
             print("San pham khong ton tai.")
             return False  
@@ -94,32 +86,25 @@ class Customer:
             print("Khong du so luong trong kho.")
             return False
         self.cart[product_id] = self.cart.get(product_id, 0) + quantity
-        #nếu sản phẩm đã có trong giỏ hàng, tăng số lượng, nếu chưa có, thêm sản phẩm với số lượng mới
         print("Da them vao gio hang.")
     
     def checkout(self, inventory):
-        #Thanh toán giỏ hàng của khách hàng, liên kết với inventory để giảm số lượng sản phẩm trong kho
         total = 0
         print(f"Hoa don mua hang cua {self.name} ")
         for pid, qty in self.cart.items():
-            #Lấy thông tin sản phẩm từ kho hàng dựa trên mã sản phẩm, 
-            product = inventory.products.get(pid) #lấy đối tượng sản phẩm từ kho thông qua mã 
+            product = inventory.products.get(pid) 
             if product and inventory.reduce_quantity(pid, qty):
-                #kiểm tra xem sản phẩm có tồn tại và giảm số lượng trong kho thành công
                 cost = product.price * qty
                 total += cost
                 print(f"{product.name} x {qty} = {cost} VND")
             else:
-                #nếu sản phẩm không tồn tại hoặc không đủ số lượng trong kho
                 print(f"Khong the mua {product.name} do khong du so luong.")
         self.total = total
         print(f"Tong cong: {self.total} VND")
         print("Cam on ban da mua hang!")
         self.cart.clear()
-        #Xoá giỏ hàng sau khi thanh toán xong
 
 class CustomerQueue:
-    #Quản lý hàng đợi khách hàng sử dụng deque(hàng đợi) để thêm và phục vụ khách hàng theo thứ tự FIFO
     def __init__(self):
         self.queue = deque()
 
@@ -129,7 +114,7 @@ class CustomerQueue:
     
     def next_customer(self):
         if self.queue:
-            return self.queue.popleft()#pop là lấy và xóa phần tử đầu tiên của hàng đợi, rồi đẩy phần từ tiếp theo lên đầu
+            return self.queue.popleft()
         print("Khong con khach hang nao trong hang doi.")
         return None
 
@@ -142,12 +127,8 @@ class CustomerQueue:
             print(f"Ma khach hang: {customer.customer_id}, Ten: {customer.name}")
     
     def serve_next_customer(self, inventory):
-        #Hàm phục vụ khách hàng tiếp theo. Ban đầu là hàng sẽ rỗng và khi thêm vào, sẽ tự động lấy khách hàng đầu tiên trong hàng đợi khi mình thêm vào.
-        #Tiếp theo là sẽ xóa đi khách hàng đó khỏi hàng đợi và phục vụ họ.
         customer = self.next_customer()
-        #khách hàng sẽ lấy từ hàng đợi thông qua hàm next_customer đã định nghĩa ở trên
         if not customer:
-            #Nếu không có khách hàng nào trong hàng đợi, hàm sẽ kết thúc và không thực hiện gì thêm
             return
 
         print(f"Dang phuc vu khach hang: {customer.name}")
@@ -155,11 +136,9 @@ class CustomerQueue:
             pid = input("Nhap ma san pham can mua (hoac 'X' de ket thuc): ").strip()
             if pid.lower() == 'x':
                 customer.checkout(inventory)
-                #Khi khách hàng nhập 'X', hàm checkout sẽ được gọi để thanh toán giỏ hàng của khách hàng và giỏ hàng sẽ được thanh toán
                 break
             qty = int(input("Nhap so luong: ").strip())
             customer.add_to_cart(inventory, pid, qty)
-            # customer.add_to_cart sẽ được gọi để thêm sản phẩm vào giỏ hàng của khách hàng
 
 
 
@@ -254,8 +233,6 @@ def main():
         
                 elif choice == '2':
                     queue.serve_next_customer(inventory)
-                    #khi chọn phục vụ khách hàng, hàm serve_next_customer sẽ được gọi để phục vụ khách hàng tiếp theo trong hàng đợi
-                    #inventory được truyền vào để quản lý kho hàng trong quá trình phục vụ khách hàng
         
                 elif choice == '3':
                     queue.show_queue()
